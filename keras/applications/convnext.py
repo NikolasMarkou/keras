@@ -181,14 +181,14 @@ class StochasticDepth(layers.Layer):
     def __init__(self, drop_path_rate, **kwargs):
         super().__init__(**kwargs)
         self.drop_path_rate = drop_path_rate
+        self.dropout = layers.Dropout(rate=self.drop_path_rate, 
+                                      noise_shape=(1,))
 
     def call(self, x, training=None):
         if training:
             keep_prob = 1 - self.drop_path_rate
-            shape = (tf.shape(x)[0],) + (1,) * (len(tf.shape(x)) - 1)
-            random_tensor = keep_prob + tf.random.uniform(shape, 0, 1)
-            random_tensor = tf.floor(random_tensor)
-            return (x / keep_prob) * random_tensor
+            return self.dropout((x / keep_prob), training)
+        
         return x
 
     def get_config(self):
